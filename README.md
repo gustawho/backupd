@@ -32,8 +32,8 @@ Or, if an Arch Linux / Parabola user, just use the PKGBUILD
 
 ```backup [OPTION...] ```
 
-| Option | Description |
-|:-|-:|
+ |Option | Description |
+|:-------------|-------------:|
 | ```-s, --sync ``` | Force the creation of the backup file |
 | ```-c, --config ``` | Re-generate the configuration file |
 | ```--status ``` | Display the current settings |
@@ -44,7 +44,7 @@ The output files will be named by hostname and creation date,
 E.g.,
 
 | File | Description |
-|:-|-:|
+|:-------------|-------------:|
 | ```myPC-2015-12-05.gpg ``` | Backup file |
 | ```myPC-2015-12-05.gpg.asc ``` | Digital signature |
 
