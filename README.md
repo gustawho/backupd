@@ -2,9 +2,9 @@
 Compressed and encrypted backups with 7zip and GPG
 
 ### KISS: Keep It Secret, Subhuman
-Don't expect any sort of fanciness. Really. It is just a simple script that compresses the selected folder with 7zip, encrypts it with GPG and then moves it to a destination folder. Plain and simple.
+Don't expect any sort of fanciness. Really. It is just a simple script that compresses the selected folder with 7zip, encrypts it with GPG and then moves it to a destination folder (local or remote). Plain and simple.
 
-It doesn't include any cloud syncing capability, but can be accomplished by many ways, like [this one](https://github.com/gustawho/backupd/wiki/ownCloud-sync).
+It does include basic support for WebDAV, but using other protocols shouldn't be hard to implement.
 
 ### Requirements
 * A decent OS ¯\_(ツ)_/¯
@@ -12,7 +12,7 @@ It doesn't include any cloud syncing capability, but can be accomplished by many
 * GnuPG
 * p7zip
 * Some stuff to backup
-* davfs2 (optional, read the wiki)
+* davfs2 (optional)
 * A pinch of [love](http://i2.kym-cdn.com/photos/images/newsfeed/000/982/798/717.jpg)
 
 ### Installation
