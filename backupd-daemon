@@ -1,0 +1,55 @@
+#!/bin/bash
+#     backupd-daemon - part of backupd
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+# 
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+# 
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+DATE=$(date "+%Y-%m-%d")
+baseName=$(hostname)-$DATE
+bkpFile=$baseName.7z
+gpgFile="${bkpFile%%.*}.gpg"
+configFile=$HOME/.config/backupd.conf
+tmpDir=/tmp/backup-$DATE
+
+if [ -f "${configFile}" ]; then
+  . ${configFile}
+fi
+
+mkdir -p $tmpDir && cd $tmpDir
+
+if [ "$webDav" == 'y' ]; then
+  if ! [[ $(cat /etc/mtab | grep ${syncDir}) ]]; then
+    echo -ne ">>> Mounting remote folder..."
+      mount $syncDir
+    echo -e " Done"
+  else
+    echo -e " Directory already mounted!"
+  fi
+fi
+
+7z a $bkpFile -m0=LZMA -mx=9 -aoa $sourceDir > 7z.log
+echo ">>> Backup file compressed"
+
+gpg --quiet -default-key=$keyId -r $recipient -e $bkpFile && mv $bkpFile.gpg $gpgFile
+gpg --quiet -s -o $gpgFile.asc --detach-sig $gpgFile
+echo ">>> Backup encrypted"
+
+mv -u $gpgFile $syncDir/
+mv -u $gpgFile.asc $syncDir/
+
+if [ -f "$syncDir/$gpgFile" ]; then
+  cd "$OLDPWD" && rm -rf $tmpDir
+  echo ">>> Backup successfully synced!"
+else
+  echo "!!! Error(s) occurred while backing up, check log files."
+fi

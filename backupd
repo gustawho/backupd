@@ -1,0 +1,268 @@
+#!/bin/bash
+#     backupd - Copyleft (Ↄ) 2015 gustawho - https://github.com/gustawho/backupd
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+# 
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+# 
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+DATE=$(date "+%Y-%m-%d")
+baseName=$(hostname)-$DATE
+bkpFile=$baseName.7z
+gpgFile="${bkpFile%%.*}.gpg"
+tmpDir=/tmp/backupd-$DATE
+configFile=$HOME/.config/backupd.conf
+distro=$(lsb_release -si)
+
+preReq() {
+  if ! [ -x /usr/bin/7z ]; then
+    echo -ne "Error: 7z executable not found or not executable. "
+    askInstall
+  fi
+}
+
+pkgInstall() {
+  case "$distro" in
+    Arch)
+      sudo pacman -S p7zip
+    ;;
+    Debian)
+      sudo aptitude install p7zip-full 
+    ;;
+    Parabola)
+      sudo pacman -S p7zip
+    ;;
+    Ubuntu)
+      sudo apt install p7zip-full
+  esac
+}
+
+askInstall() {
+  echo -ne "Do you want me to install it for you? [y/n] "
+  read pkgConfirm
+  if [ "$pkgConfirm" == 'y' ]; then
+    pkgInstall
+  else
+    p7zipPkg
+  fi
+}
+
+p7zipPkg() {
+  case "$distro" in
+    Arch)
+      echo "Tnstall 'p7zip' from [extra]."
+    ;;
+    Debian)
+      echo -e "Please, install p7zip-full."
+    ;;
+    Parabola)
+      echo "Tnstall 'p7zip' from [libre]."
+    ;;
+    Ubuntu)
+      echo -e "Tnstall 'p7zip-full': sudo apt install p7zip-full"
+    ;;
+    *)
+      echo -e "Please, install the 7zip package provided by your system packager or build it yourself."
+  esac
+}
+
+mountDir() {
+  if [ "$webDav" == 'y' ]; then
+    if ! [[ $(cat /etc/mtab | grep ${syncDir}) ]]; then
+      echo -ne ">>> Mounting remote folder..."
+      mount $syncDir
+      echo -e " Done"
+    else
+      echo -e " Directory already mounted!"
+    fi
+  fi
+}
+
+compressBkp() {
+  echo -ne ">>> Compressing backup..."
+  7z a $bkpFile -m0=LZMA -mx=9 -aoa $sourceDir > 7z.log
+  echo -e " Done"
+}
+
+gpgFunc() {
+  if [ "$gpgEncrypt" == 'true' ]; then
+    echo -e ">>> Encrypting and signing backup..."
+    gpg --quiet --default-key=$keyId -r $recipient -e $bkpFile && mv $bkpFile.gpg $gpgFile
+    gpg --quiet -s -o $gpgFile.asc --detach-sig $gpgFile
+    echo -e "Done"
+  fi
+}
+
+syncNow() {
+  echo -ne ">>> Syncing file..."
+  mv -u $gpgFile $syncDir/
+  mv -u $gpgFile.asc $syncDir/
+  echo -e " Done"
+
+  if [ -f "$syncDir/$gpgFile" ]; then
+    echo -ne ">>> Cleaning temporary files..."
+    cd "$OLDPWD" && rm -rf $tmpDir
+    echo -e " Done\n"
+    echo -e "    Backup job completed successfully."
+  else
+    echo -e "    An error occurred while backing up. Please, try again."
+  fi
+}
+
+makeConf() {
+  rm -f $HOME/.config/backupd.conf
+  echo -ne "Directory to backup: "
+  read askSrc
+  echo -ne "Destination: "
+  read askSync
+  echo -ne "Is the sync path a WebDAV mounted folder? [y/n]"
+  read webDavAsk
+  echo -ne "Do you want to encrypt your files with GPG? [y/n] "
+  read encryptYn
+  echo
+  if [ "$encryptYn" == 'y' ]; then
+    echo -ne "Do you already have a valid GPG key I can use? [y/n] "
+    read certYn
+    if [ "$certYn" == 'y' ]; then
+      echo -ne "Please, insert your key ID and press enter (E.g. 0x12345678): "
+      read givenId
+      echo -ne "Recipient email: "
+      read recipientG
+      echo -e "## Configuration file for backupd ##\n\n# The location where your data will be backed up\nsourceDir=${askSrc}\n# The destination folder where the compressed file will be saved\nsyncDir=${askSync}\n# For automount\nwebDav=${webDavAsk}\n# Encrypt your backup file\ngpgEncrypt=true\n# The GPG key ID used for encryption\nkeyId=${givenId}\n# Encrypt for the user with given email or ID\nrecipient=${recipientG}\n" > $HOME/.config/backupd.conf
+      . ${configFile}
+    fi
+  else
+    echo -ne "Do you want to create one now? [y/n] "
+    read newKey
+    if [ "$newKey" == 'y' ]; then
+      gpg --gen-key
+      echo -e "### Make sure that you WILL NOT FORGET your password. If you do, you'll never be able to decrypt your files! "
+      getEmail=$(gpg -K  | grep @)
+      eMail=$(grep -oP '(?<=<).*?(?=>)' <<< "$getKeyId")
+      echo -e "## Configuration file for backupd ##\n\n# The location where your data will be backed up\nsourceDir=${askSrc}\n# The destination folder where the compressed file will be saved\nsyncDir=${askSync}\n# For automount\nwebDav=${webDavAsk}\n# Encrypt your backup file\ngpgEncrypt=true\n# The GPG key ID used for encryption\n#keyId=\n# Encrypt for the user with given email or ID\nrecipient=${eMail}\n" > $HOME/.config/backupd.conf
+      . ${configFile}
+    fi
+  fi
+}
+
+systemD() {
+  systemctl --user enable backupd.service
+  if [ $? -eq 0 ]; then
+    echo "Service backupd enabled"
+  else
+    echo "Cannot enable the backupd service. Run 'sudo journalctl -xe' for log information."
+  fi
+}
+
+showHelp(){
+  echo "backupd version 0.1 Copyleft (Ↄ) 2015 gustawho - https://github.com/gustawho/backupd"
+  echo "Create and sync compressed and (optionally) encrypted backup files using 7z and GPG"
+  echo
+  echo "Usage: backup [OPTION...]" >&2
+  echo
+  echo "Options:"
+  echo
+  echo "  -s, --sync       Force the creation of the backup file"
+  echo "  -c, --config     Re-generate the configuration file (~/.config/backupd.conf)"
+  echo "      --status     Display the current settings"
+  echo "  -d, --daemon     Use as daemon with systemd"
+  echo "  -h, --help       Display this message"
+  echo
+  echo "The output files will be named by hostname and creation date,"
+  echo "E.g., myPC-2015-12-05.gpg       <-   Backup file"
+  echo "      myPC-2015-12-05.gpg.asc   <-   Digital signature"
+  echo
+  echo "You can run this script manually or let the systemd service do it for you."
+  echo -e "By default, it will run the sync process weekly, 10 minutes after boot, but you can\nchange this editing the section [Timer] of /usr/lib/systemd/user/backupd.timer"
+  echo
+  echo "For instructions to keep your backup synced with a cloud, read this wiki article:"
+  echo "https://github.com/gustawho/backupd/wiki/ownCloud-sync"
+}
+
+if [ -f "${configFile}" ]; then
+  . ${configFile}
+else
+  echo -e "It seems this is the first time you run the program.\nWe'll begin with the creation of the configuration file."
+  echo -ne "Directory to backup: "
+  read askSrc
+  echo -ne "Destination: "
+  read askSync
+  echo -ne "Is the sync path a WebDAV mounted folder? [y/n]"
+  read webDavAsk
+  echo -ne "Do you want to encrypt your files with GPG? [y/n] "
+  read encryptYn
+  if [ "$encryptYn" == 'y' ]; then
+    echo -ne "Do you already have a valid GPG key I can use? [y/n] "
+    read certYn
+    if [ "$certYn" == 'y' ]; then
+      echo -ne "Please, insert your key ID and press enter (E.g. 0x12345678): "
+      read givenId
+      echo -ne "Recipient email: "
+      read recipientG
+      echo -e "## Configuration file for backupd ##\n\n# The location where your data will be backed up\nsourceDir=${askSrc}\n# The destination folder where the compressed file will be saved\nsyncDir=${askSync}\n# For automount\nwebDav=${webDavAsk}\n# Encrypt your backup file\ngpgEncrypt=true\n# The GPG key ID used for encryption\nkeyId=${givenId}\n# Encrypt for the user with given email or ID\nrecipient=${recipientG}\n" > $HOME/.config/backupd.conf
+      . ${configFile}
+    fi
+  else
+    echo -ne "Do you want to create one now? [y/n] "
+    read newKey
+    echo
+    if [ "$newKey" == 'y' ]; then
+      gpg --gen-key
+      echo -e "### Make sure that you WILL NOT FORGET your password. If you do, you'll never be able to decrypt your files! "
+      getEmail=$(gpg -K  | grep @)
+      eMail=$(grep -oP '(?<=<).*?(?=>)' <<< "$getKeyId")
+      echo -e "## Configuration file for backupd ##\n\n# The location where your data will be backed up\nsourceDir=${askSrc}\n# The destination folder where the compressed file will be saved\nsyncDir=${askSync}\n# For automount\nwebDav=${webDavAsk}\n# Encrypt your backup file\ngpgEncrypt=true\n# The GPG key ID used for encryption\n#keyId=\n# Encrypt for the user with given email or ID\nrecipient=${eMail}\n" > $HOME/.config/backupd.conf
+      . ${configFile}
+    fi
+  fi
+fi
+
+while :
+  do
+    case "$1" in
+      -s | --sync)
+        preReq
+        mkdir -p $tmpDir && cd $tmpDir
+        mountDir
+        compressBkp
+        gpgFunc
+        syncNow
+        break
+      ;;
+      -c | --config)
+        makeConf
+        break
+      ;;
+      --status)
+        cat $HOME/.config/backupd.conf
+        break
+      ;;
+      -d | --daemon)
+        systemD
+        break
+      ;;
+      -h | --help)
+        showHelp
+        break
+      ;;
+      --)
+        shift
+        break
+      ;;
+      -*)
+        echo "Error: Unknown option: $1" >&2
+        exit
+      ;;
+      *)
+        showHelp
+      break
+    esac
+  done

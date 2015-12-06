@@ -1,0 +1,9 @@
+[Unit]
+Description=Compress, encrypt and sync the backup folder
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1w 
+
+[Install]
+WantedBy=timers.target

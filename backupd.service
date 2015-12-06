@@ -1,0 +1,10 @@
+[Unit]
+Description=Compress, encrypt and sync the backup folder
+Wants=backupd.timer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/backupd-daemon
+
+[Install]
+WantedBy=default.target
