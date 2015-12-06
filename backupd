@@ -129,22 +129,31 @@ davConf() {
   read webdavUser
   echo -ne "And your password? "
   read webdavPass
-  sudo usermod -a -G network $userName
-  sudo echo "${webdavUser} /home/${userName}/${syncDir} davfs user,noauto,uid=${userName},file_mode=600,dir_mode=700 0 1" >> /etc/fstab
-  mkdir $HOME/.davfs2/
+  f=$(cat /etc/fstab | grep davfs)
+  if [ -z "$f" ]; then
+    sudo echo "${webdavUser} /home/${userName}/${syncDir} davfs user,noauto,uid=${userName},file_mode=600,dir_mode=700 0 1" >> /etc/fstab
+  fi
+#   sudo usermod -a -G network $userName
+  if ! [ -d "$HOME/.davfs2/" ]; then
+    mkdir $HOME/.davfs2/
+  fi
   echo "${webdavUrl} ${webdavUser} ${webdavPass}" >> $HOME/.davfs2/secrets 
   chmod 0600 $HOME/.davfs2/secrets
 }
 
-davCheck(){
-  if [ "$webDavAsk" == 'y' ] && ! [ -x /usr/bin/mount.davfs ]; then
-    echo -ne "Coulnd't detect the davfs2 module installed on your system. Should I install it now? [y/n] "
-    read installDav
-    if [ "$installDav" == 'y' ]; then
-      davInstall
-      davConf
+davCheck() {
+  if [ "$webDavAsk" == 'y' ]; then
+    if ! [ -x /usr/bin/mount.davfs ]; then
+      echo -ne "Coulnd't detect the davfs2 module installed on your system. Should I install it now? [y/n] "
+      read installDav
+      if [ "$installDav" == 'y' ]; then
+        davInstall
+        davConf
+      else
+        davPkg
+      fi
     else
-      davPkg
+      davConf
     fi
   fi
 }
@@ -196,9 +205,11 @@ makeConf() {
   rm -f $HOME/.config/backupd.conf
   echo -ne "Directory to backup: "
   read askSrc
+  mkdir -p $askSrc
   echo -ne "Destination: "
   read askSync
-  echo -ne "Is the sync path a WebDAV mounted folder? [y/n]"
+  mkdir -p $askSync
+  echo -ne "Is the sync path a WebDAV mounted folder? [y/n] "
   read webDavAsk
   davCheck
   echo -ne "Do you want to encrypt your files with GPG? [y/n] "
@@ -267,9 +278,11 @@ else
   echo -e "It seems this is the first time you run the program.\nWe'll begin with the creation of the configuration file."
   echo -ne "Directory to backup: "
   read askSrc
+  mkdir -p $askSrc
   echo -ne "Destination: "
   read askSync
-  echo -ne "Is the sync path a WebDAV mounted folder? [y/n]"
+  mkdir -p $askSync
+  echo -ne "Is the sync path a WebDAV mounted folder? [y/n] "
   read webDavAsk
   davCheck
   echo -ne "Do you want to encrypt your files with GPG? [y/n] "
