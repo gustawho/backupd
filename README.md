@@ -22,6 +22,7 @@ install -m644 backupd /usr/bin/
 install -m644 backupd-daemon /usr/bin/
 install -m644 backupd.service /usr/lib/systemd/user/
 install -m644 backupd.timer /usr/lib/systemd/user/
+chmod +x /usr/bin/{backupd,backupd-daemon}
 ```
 
 Or, if an Arch Linux / Parabola user, just use the PKGBUILD 

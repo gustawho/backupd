@@ -20,4 +20,5 @@ package() {
   install -m644 backupd-daemon "$pkgdir/usr/bin/"
   install -m644 backupd.service "$pkgdir/usr/lib/systemd/user/"
   install -m644 backupd.timer "$pkgdir/usr/lib/systemd/user/"
+  chmod +x "$pkgdir/usr/bin/{backupd,backupd-daemon}"
 }
