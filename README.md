@@ -32,7 +32,7 @@ Or, if an Arch Linux / Parabola user, just install ```backupd ``` from [AUR](htt
 
 ### Usage
 
-```backup [OPTION...] ```
+```backupd [OPTION...] ```
 
 
 | Option | Description |
