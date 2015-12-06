@@ -16,7 +16,7 @@
 
 DATE=$(date "+%Y-%m-%d")
 baseName=$(hostname)-$DATE
-bkpFile=$baseName.7z
+bkpFile=$baseName.tar.xz
 gpgFile="${bkpFile%%.*}.gpg"
 tmpDir=/tmp/backupd-$DATE
 configFile=$HOME/.config/backupd.conf
@@ -24,8 +24,8 @@ distro=$(lsb_release -si)
 userName=$(whoami)
 
 preReq() {
-  if ! [ -x /usr/bin/7z ]; then
-    echo -ne "Error: 7z executable not found or not executable. "
+  if ! [ -x /usr/bin/pigz ]; then
+    echo -ne "Error: pigz executable not found or not executable. "
     askInstall
   fi
 }
@@ -33,19 +33,19 @@ preReq() {
 pkgInstall() {
   case "$distro" in
     Arch)
-      sudo pacman -S p7zip
+      sudo pacman -S pigz
     ;;
     Debian)
-      sudo aptitude install p7zip-full 
+      sudo aptitude install pigz
     ;;
     Parabola)
-      sudo pacman -S p7zip
+      sudo pacman -S pigz
     ;;
     "SUSE LINUX")
-      sudo zypper install p7zip
+      sudo zypper install pigz
     ;;
     Ubuntu)
-      sudo apt install p7zip-full
+      sudo apt install pigz
   esac
 }
 
@@ -55,29 +55,29 @@ askInstall() {
   if [ "$pkgConfirm" == 'y' ]; then
     pkgInstall
   else
-    p7zipPkg
+    xzPkg
   fi
 }
 
-p7zipPkg() {
+xzPkg() {
   case "$distro" in
     Arch)
-      echo "Install 'p7zip' from [extra]."
+      echo "Install 'pigz' from [community]."
     ;;
     Debian)
-      echo -e "Please, install p7zip-full."
+      echo -e "Please, install pigz."
     ;;
     Parabola)
-      echo "Install 'p7zip' from [libre]."
+      echo "Install 'pigz' from [community]."
     ;;
     "SUSE LINUX")
-      echo -e "Install the p7zip pacakge."
+      echo -e "Install the pigz pacakge."
     ;;
     Ubuntu)
-      echo -e "Install 'p7zip-full': sudo apt install p7zip-full"
+      echo -e "Install 'pigz': sudo apt install pigz"
     ;;
     *)
-      echo -e "Please, install the 7zip package provided by your system packager or build it yourself."
+      echo -e "Please, install the pigz package provided by your system packager or build it yourself."
   esac
 }
 
@@ -87,7 +87,7 @@ davInstall() {
       sudo pacman -S davfs2
     ;;
     Debian)
-      sudo aptitude install p7zip-full 
+      sudo aptitude install davfs2
     ;;
     Parabola)
       sudo pacman -S davfs
@@ -115,7 +115,7 @@ davPkg() {
       echo -e "Install the davfs2 pacakge."
     ;;
     Ubuntu)
-      echo -e "Install 'davfs2': sudo apt install p7zip-full"
+      echo -e "Install 'davfs2': sudo apt install davfs2"
     ;;
     *)
       echo -e "Please, install the davfs2 package provided by your system packager or build it yourself."
@@ -133,12 +133,13 @@ davConf() {
   if [ -z "$f" ]; then
     sudo echo "${webdavUser} /home/${userName}/${syncDir} davfs user,noauto,uid=${userName},file_mode=600,dir_mode=700 0 1" >> /etc/fstab
   fi
-#   sudo usermod -a -G network $userName
+   sudo usermod -a -G network $userName
   if ! [ -d "$HOME/.davfs2/" ]; then
     mkdir $HOME/.davfs2/
   fi
-  echo "${webdavUrl} ${webdavUser} ${webdavPass}" >> $HOME/.davfs2/secrets 
+  echo "${webdavUrl} ${webdavUser} ${webdavPass}" >> $HOME/.davfs2/secrets
   chmod 0600 $HOME/.davfs2/secrets
+  echo "use_locks = 0" >> $HOME/.davfs2/davfs2.conf
 }
 
 davCheck() {
@@ -172,7 +173,7 @@ mountDir() {
 
 compressBkp() {
   echo -ne ">>> Compressing backup..."
-  7z a $bkpFile -m0=LZMA -mx=9 -aoa $sourceDir > 7z.log
+  XZ_OPT=-9 tar -Jpcf - $sourceDir | pigz > $bkpFile
   echo -e " Done"
 }
 
@@ -251,7 +252,7 @@ systemD() {
 
 showHelp(){
   echo "backupd version 0.1 Copyleft (Ↄ) 2015 gustawho - https://github.com/gustawho/backupd"
-  echo "Create and sync compressed and (optionally) encrypted backup files using 7z and GPG"
+  echo "Create and sync compressed and (optionally) encrypted backup files using xz and GPG"
   echo
   echo "Usage: backupd [OPTION...]" >&2
   echo

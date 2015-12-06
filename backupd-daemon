@@ -5,18 +5,18 @@
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 3 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 DATE=$(date "+%Y-%m-%d")
 baseName=$(hostname)-$DATE
-bkpFile=$baseName.7z
+bkpFile=$baseName.tar.xz
 gpgFile="${bkpFile%%.*}.gpg"
 configFile=$HOME/.config/backupd.conf
 tmpDir=/tmp/backup-$DATE
@@ -37,7 +37,7 @@ if [ "$webDav" == 'y' ]; then
   fi
 fi
 
-7z a $bkpFile -m0=LZMA -mx=9 -aoa $sourceDir > 7z.log
+XZ_OPT=-9 tar -Jpcf - $sourceDir | pigz > $bkpFile
 echo ">>> Backup file compressed"
 
 gpg --quiet -default-key=$keyId -r $recipient -e $bkpFile && mv $bkpFile.gpg $gpgFile

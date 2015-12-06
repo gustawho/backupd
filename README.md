@@ -1,8 +1,8 @@
 # backupd
-Compressed and encrypted backups with 7zip and GPG
+Compressed and encrypted backups
 
 ### KISS: Keep It Secret, Subhuman
-Don't expect any sort of fanciness. Really. It is just a simple script that compresses the selected folder with 7zip, encrypts it with GPG and then moves it to a destination folder (local or remote). Plain and simple.
+Don't expect any sort of fanciness. Really. It is just a simple script that compresses the selected folder with xz, encrypts it with GPG and then moves it to a destination folder (local or remote). Plain and simple.
 
 It does include basic support for WebDAV, but using other protocols shouldn't be hard to implement.
 
@@ -10,7 +10,8 @@ It does include basic support for WebDAV, but using other protocols shouldn't be
 * A decent OS ¯\_(ツ)_/¯
 * Bash
 * GnuPG
-* p7zip
+* xz
+* pigz
 * Some stuff to backup
 * davfs2 (optional)
 * A pinch of [love](http://i2.kym-cdn.com/photos/images/newsfeed/000/982/798/717.jpg)
