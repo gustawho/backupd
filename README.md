@@ -32,7 +32,8 @@ Or, if an Arch Linux / Parabola user, just use the PKGBUILD
 
 ```backup [OPTION...] ```
 
- |Option | Description |
+
+| Option | Description |
 |:-------------|-------------:|
 | ```-s, --sync ``` | Force the creation of the backup file |
 | ```-c, --config ``` | Re-generate the configuration file |
