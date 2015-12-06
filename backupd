@@ -223,7 +223,7 @@ makeConf() {
       read givenId
       echo -ne "Recipient email: "
       read recipientG
-      echo -e "## Configuration file for backupd ##\n\n# The location where your data will be backed up\nsourceDir=${askSrc}\n# The destination folder where the compressed file will be saved\nsyncDir=${askSync}\n# For automount\nwebDav=${webDavAsk}\n# Encrypt your backup file\ngpgEncrypt=true\n# The GPG key ID used for encryption\nkeyId=${givenId}\n# Encrypt for the user with given email or ID\nrecipient=${recipientG}\n" > $HOME/.config/backupd.conf
+      echo -e "sourceDir=${askSrc}\nsyncDir=${askSync}\n\nwebDav=${webDavAsk}\ngpgEncrypt=true\nkeyId=${givenId}\nrecipient=${eMail}" > $HOME/.config/backupd.conf
       . ${configFile}
     fi
   else
@@ -234,7 +234,7 @@ makeConf() {
       echo -e "### Make sure that you WILL NOT FORGET your password. If you do, you'll never be able to decrypt your files! "
       getEmail=$(gpg -K  | grep @)
       eMail=$(grep -oP '(?<=<).*?(?=>)' <<< "$getKeyId")
-      echo -e "## Configuration file for backupd ##\n\n# The location where your data will be backed up\nsourceDir=${askSrc}\n# The destination folder where the compressed file will be saved\nsyncDir=${askSync}\n# For automount\nwebDav=${webDavAsk}\n# Encrypt your backup file\ngpgEncrypt=true\n# The GPG key ID used for encryption\n#keyId=\n# Encrypt for the user with given email or ID\nrecipient=${eMail}\n" > $HOME/.config/backupd.conf
+      echo -e "sourceDir=${askSrc}\nsyncDir=${askSync}\n\nwebDav=${webDavAsk}\ngpgEncrypt=true\nkeyId=${getKeyId}\nrecipient=${eMail}" > $HOME/.config/backupd.conf
       . ${configFile}
     fi
   fi
@@ -295,7 +295,7 @@ else
       read givenId
       echo -ne "Recipient email: "
       read recipientG
-      echo -e "## Configuration file for backupd ##\n\n# The location where your data will be backed up\nsourceDir=${askSrc}\n# The destination folder where the compressed file will be saved\nsyncDir=${askSync}\n# For automount\nwebDav=${webDavAsk}\n# Encrypt your backup file\ngpgEncrypt=true\n# The GPG key ID used for encryption\nkeyId=${givenId}\n# Encrypt for the user with given email or ID\nrecipient=${recipientG}\n" > $HOME/.config/backupd.conf
+      echo -e "sourceDir=${askSrc}\nsyncDir=${askSync}\n\nwebDav=${webDavAsk}\ngpgEncrypt=true\nkeyId=${givenId}\nrecipient=${eMail}" > $HOME/.config/backupd.conf
       . ${configFile}
     fi
   else
@@ -307,7 +307,7 @@ else
       echo -e "### Make sure that you WILL NOT FORGET your password. If you do, you'll never be able to decrypt your files! "
       getEmail=$(gpg -K  | grep @)
       eMail=$(grep -oP '(?<=<).*?(?=>)' <<< "$getKeyId")
-      echo -e "## Configuration file for backupd ##\n\n# The location where your data will be backed up\nsourceDir=${askSrc}\n# The destination folder where the compressed file will be saved\nsyncDir=${askSync}\n# For automount\nwebDav=${webDavAsk}\n# Encrypt your backup file\ngpgEncrypt=true\n# The GPG key ID used for encryption\n#keyId=\n# Encrypt for the user with given email or ID\nrecipient=${eMail}\n" > $HOME/.config/backupd.conf
+      echo -e "sourceDir=${askSrc}\nsyncDir=${askSync}\n\nwebDav=${webDavAsk}\ngpgEncrypt=true\nkeyId=${getKeyId}\nrecipient=${eMail}" > $HOME/.config/backupd.conf
       . ${configFile}
     fi
   fi

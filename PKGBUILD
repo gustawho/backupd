@@ -22,4 +22,5 @@ package() {
   install -m644 backupd.timer "$pkgdir/usr/lib/systemd/user/"
   chmod +x "$pkgdir/usr/bin/backupd"
   chmod +x "$pkgdir/usr/bin/backupd-daemon"
+  install -g 0 -o 0 -m 0644 backupd.1.gz "$pkgdir/usr/share/man/man1/"
 }
