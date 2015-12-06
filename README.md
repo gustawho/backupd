@@ -26,7 +26,7 @@ chmod +x /usr/bin/{backupd,backupd-daemon}
 install -g 0 -o 0 -m 0644 backupd.1.gz /usr/share/man/man1/
 ```
 
-Or, if an Arch Linux / Parabola user, just use the PKGBUILD 
+Or, if an Arch Linux / Parabola user, just install ```backupd ``` from [AUR](https://aur.archlinux.org/packages/backupd/). 
 
 ![Default view](http://i.imgur.com/4bvHVjO.png)
 
