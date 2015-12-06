@@ -58,16 +58,16 @@ askInstall() {
 p7zipPkg() {
   case "$distro" in
     Arch)
-      echo "Tnstall 'p7zip' from [extra]."
+      echo "Install 'p7zip' from [extra]."
     ;;
     Debian)
       echo -e "Please, install p7zip-full."
     ;;
     Parabola)
-      echo "Tnstall 'p7zip' from [libre]."
+      echo "Install 'p7zip' from [libre]."
     ;;
     Ubuntu)
-      echo -e "Tnstall 'p7zip-full': sudo apt install p7zip-full"
+      echo -e "Install 'p7zip-full': sudo apt install p7zip-full"
     ;;
     *)
       echo -e "Please, install the 7zip package provided by your system packager or build it yourself."
