@@ -1,7 +1,7 @@
 # backupd
 Compressed and encrypted backups
 
-### KISS: Keep It Secret, Subhuman
+### Keep It Secret, Subhuman
 Don't expect any sort of fanciness. Really. It is just a simple script that compresses the selected folder with xz, encrypts it with GPG and then moves it to a destination folder (local or remote). Plain and simple.
 
 It does include basic support for WebDAV, but using other protocols shouldn't be hard to implement.
